@@ -18,18 +18,19 @@ mkdir $qc_og
 apptainer exec \
   --bind /data \
   /containers/apptainer/fastqc-0.12.1.sif \
-  fastqc "$BASEDIR/reads.fastq.gz" -o $qc_og
+  fastqc "$BASEDIR/reads.fastq.gz" -o $qc_og &
 
 apptainer exec \
   --bind /data \
   /containers/apptainer/fastqc-0.12.1.sif \
-  fastqc "$BASEDIR/RNA_data/ERR754081_2.fastq.gz" -o $qc_og
+  fastqc "$BASEDIR/RNA_data/ERR754081_2.fastq.gz" -o $qc_og &
 
 apptainer exec \
   --bind /data \
   /containers/apptainer/fastqc-0.12.1.sif \
-  fastqc "$BASEDIR/RNA_data/ERR754081_1.fastq.gz" -o "$qc_og"
+  fastqc "$BASEDIR/RNA_data/ERR754081_1.fastq.gz" -o "$qc_og" &
   
+
 
 fp="$RESULTDIR/fastp"
 mkdir $fp
@@ -37,17 +38,27 @@ mkdir "$fp/dna"
 mkdir "$fp/rna1"
 mkdir "$fp/rna2"
 
-apptainer exec \
-  --bind /data \
-  /containers/apptainer/fastp_0.23.2--h5f740d0_3.sif \
-  fastp -Q -i "$BASEDIR/reads.fastq.gz" -o "$fp/dna/report.html"
+# These run independently - therefore we can paralellize them 
+#  using bash jobs: '&' at the end of a command to make it into a job, 
+# and 'wait' command to wait for them to finish before starting next step.
+wait
+# Sequential version of this script ran for: 15m
 
 apptainer exec \
   --bind /data \
   /containers/apptainer/fastp_0.23.2--h5f740d0_3.sif \
-  fastp -i "$BASEDIR/rna_data/ERR754081_1.fastq.gz" -o "$fp/rna1/report.html"  
+  fastp -Q -i "$BASEDIR/reads.fastq.gz" -h "$fp/dna/report.html" -o "$fp/dna/out"  &
 
 apptainer exec \
   --bind /data \
   /containers/apptainer/fastp_0.23.2--h5f740d0_3.sif \
-  fastp -i "$BASEDIR/rna_data/ERR754081_2.fastq.gz" -o "$fp/rna2/report.html"
+  fastp -i "$BASEDIR/rna_data/ERR754081_1.fastq.gz" -h "$fp/rna1/report.html" \
+  -o "$fp/rna1/out"  &
+
+apptainer exec \
+  --bind /data \
+  /containers/apptainer/fastp_0.23.2--h5f740d0_3.sif \
+  fastp -i "$BASEDIR/rna_data/ERR754081_2.fastq.gz" -h "$fp/rna2/report.html" \
+  -o "$fp/rna2/out" &
+
+  wait
