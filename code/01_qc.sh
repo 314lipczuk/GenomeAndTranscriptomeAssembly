@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --time=15:00:00
-#SBATCH --mem=4g
+#SBATCH --mem=16g
 #SBATCH --cpus-per-task=4
 #SBATCH --job-name=QualityControl
 #SBATCH --partition=pibu_el8
@@ -42,7 +42,8 @@ mkdir "$fp/rna2"
 #  using bash jobs: '&' at the end of a command to make it into a job, 
 # and 'wait' command to wait for them to finish before starting next step.
 wait
-# Sequential version of this script ran for: 15m
+# Sequential version of this script ran for: 16m
+# Paralell: 11m
 
 apptainer exec \
   --bind /data \
@@ -52,13 +53,13 @@ apptainer exec \
 apptainer exec \
   --bind /data \
   /containers/apptainer/fastp_0.23.2--h5f740d0_3.sif \
-  fastp -i "$BASEDIR/rna_data/ERR754081_1.fastq.gz" -h "$fp/rna1/report.html" \
+  fastp -i "$BASEDIR/RNA_data/ERR754081_1.fastq.gz" -I "$BASEDIR/RNA_data/ERR754081_2.fastq.gz" -h "$fp/rna1/report.html" \
   -o "$fp/rna1/out"  &
 
-apptainer exec \
-  --bind /data \
-  /containers/apptainer/fastp_0.23.2--h5f740d0_3.sif \
-  fastp -i "$BASEDIR/rna_data/ERR754081_2.fastq.gz" -h "$fp/rna2/report.html" \
-  -o "$fp/rna2/out" &
+#apptainer exec \
+#  --bind /data \
+#  /containers/apptainer/fastp_0.23.2--h5f740d0_3.sif \
+#  fastp -i "$BASEDIR/RNA_data/ERR754081_2.fastq.gz" -h "$fp/rna2/report.html" \
+#  -o "$fp/rna2/out" &
 
-  wait
+wait
