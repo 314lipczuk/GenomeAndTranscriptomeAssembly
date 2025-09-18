@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --time=15:00:00
-#SBATCH --mem=16g
+#SBATCH --mem=64g
 #SBATCH --cpus-per-task=4
 #SBATCH --job-name=QualityControl
 #SBATCH --partition=pibu_el8
@@ -30,8 +30,6 @@ apptainer exec \
   /containers/apptainer/fastqc-0.12.1.sif \
   fastqc "$BASEDIR/RNA_data/ERR754081_1.fastq.gz" -o "$qc_og" &
   
-
-
 fp="$RESULTDIR/fastp"
 mkdir $fp
 mkdir "$fp/dna"
@@ -48,7 +46,7 @@ wait
 apptainer exec \
   --bind /data \
   /containers/apptainer/fastp_0.23.2--h5f740d0_3.sif \
-  fastp -Q -i "$BASEDIR/reads.fastq.gz" -h "$fp/dna/report.html" -o "$fp/dna/out"  &
+  fastp -Q -i "$BASEDIR/reads.fastq.gz" -h "$fp/dna/report.html" -o "$fp/dna/out.fastq.gz"  &
 
 apptainer exec \
   --bind /data \

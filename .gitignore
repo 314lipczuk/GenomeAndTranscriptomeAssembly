@@ -2,4 +2,5 @@
 results/*
 logs/*
 .*data
+*.json
 
