@@ -42,6 +42,13 @@ mkdir "$fp/rna2"
 wait
 # Sequential version of this script ran for: 16m
 # Paralell: 11m
+# So I'm leaving the paralell in.
+
+# multiqc so that i don't have to look at separate 2 reports.
+apptainer exec \
+  --bind /data \
+  /containers/apptainer/multiqc-1.19.sif \
+  "$qc_og"
 
 apptainer exec \
   --bind /data \
@@ -52,12 +59,7 @@ apptainer exec \
   --bind /data \
   /containers/apptainer/fastp_0.23.2--h5f740d0_3.sif \
   fastp -i "$BASEDIR/RNA_data/ERR754081_1.fastq.gz" -I "$BASEDIR/RNA_data/ERR754081_2.fastq.gz" -h "$fp/rna1/report.html" \
-  -o "$fp/rna1/out"  &
+  -o "$fp/rna1/out.fastq.gz" -O "$fp/rna2/out.fastq.gz"  &
 
-#apptainer exec \
-#  --bind /data \
-#  /containers/apptainer/fastp_0.23.2--h5f740d0_3.sif \
-#  fastp -i "$BASEDIR/RNA_data/ERR754081_2.fastq.gz" -h "$fp/rna2/report.html" \
-#  -o "$fp/rna2/out" &
 
 wait

@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --time=15:00:00
 #SBATCH --mem=64g
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=10
 #SBATCH --job-name=JellyFishCount
 #SBATCH --partition=pibu_el8
 #SBATCH --mail-user=przemyslaw.pilipczuk@students.unibe.ch
@@ -15,4 +15,4 @@ mkdir -p $qc_og
 module load Jellyfish/2.3.0-GCC-10.3.0
 
 jellyfish count -t10 -s 5G -C -m 21 -o "$qc_og/results.jf" \
-  <(zcat "$RESULTDIR/fastp/dna/fastp.fastq.gz")
+  <(zcat "$RESULTDIR/fastp/dna/out.fastq.gz")
