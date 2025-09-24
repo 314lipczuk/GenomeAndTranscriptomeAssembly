@@ -33,6 +33,8 @@ apptainer exec \
   hifiasm "$RESULTDIR/fastp/dna/out.fastq.gz" \
   -t 16 \
   -o "$OD/result.asm"
+
+  awk '/^S/{print ">"$2"\n"$3}' "$OD/result.asm.bp.p_ctg.gfa" | fold > "$OD/assembly_primary_contig.fa"
 fi
 
 if [ "$SATI" -eq 2 ]; then
