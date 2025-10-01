@@ -6,7 +6,7 @@
 #SBATCH --partition=pibu_el8
 #SBATCH --mail-user=przemyslaw.pilipczuk@students.unibe.ch
 #SBATCH --mail-type=end,fail
-#SBATCH --array=0-3
+#SBATCH --array=3
 
 
 SATI="$SLURM_ARRAY_TASK_ID"
@@ -53,11 +53,15 @@ fi
 if [ "$SATI" -eq 3 ]; then
 # LJA assembly
 OD="$RESULTDIR/Trinity"
-module load Trinity/2.15.1-foss-2021a
+
 mkdir -p $OD
-Trinity \
-  --left "$RESULTDIR/fastp/rna1/out.fastq.gz" \
-  --right "$RESULTDIR/fastp/rna2/out.fastq.gz" \
+apptainer exec \
+  --bind /data \
+  /containers/apptainer/trinity_2.15.2.sif \
+  Trinity \
+  --left "$RESULTDIR/fastp/rna1/out.fastq" \
+  --right "$RESULTDIR/fastp/rna2/out.fastq" \
+  --no_normalize_reads \
   --seqType fq \
   --CPU 16 \
   --max_memory 64G \
