@@ -15,15 +15,16 @@ apptainer exec \
   --bind /data \
   /containers/apptainer/quast_5.2.0.sif \
   quast.py \
-    "$RESULTDIR/flye/assembly.fasta" \
-    "$RESULTDIR/hifiasm/assembly_primary_contig.fa"  \
-    "$RESULTDIR/LJA/k501/disjointings.fasta" \
+     "$RESULTDIR/flye/assembly.fasta" \
+     "$RESULTDIR/hifiasm/assembly_primary_contig.fa"  \
+     "$RESULTDIR/LJA/k501/disjointigs.fasta" \
     --labels "flye,hifi,lja" \
     --threads 16 \
     -o "$RESULTDIR/quast/ref" \
-    --eukaryote --large --pacbio \
+    --eukaryote --large  \
     --est-ref-size 135000000 \
     --features /data/courses/assembly-annotation-course/references/TAIR10_GFF3_genes.gff \
+    --pacbio "$BASEDIR/reads.fastq.gz" \
     --no-sv \
     -R /data/courses/assembly-annotation-course/references/Arabidopsis_thaliana.TAIR10.dna.toplevel.fa
 
@@ -33,13 +34,14 @@ apptainer exec \
   --bind /data \
   /containers/apptainer/quast_5.2.0.sif \
   quast.py \
-    "$RESULTDIR/flye/assembly.fasta" \
-    "$RESULTDIR/hifiasm/assembly_primary_contig.fa"  \
-    "$RESULTDIR/LJA/k501/disjointings.fasta" \
+     "$RESULTDIR/flye/assembly.fasta" \
+     "$RESULTDIR/hifiasm/assembly_primary_contig.fa"  \
+     "$RESULTDIR/LJA/k501/disjointigs.fasta" \
+     --pacbio "$BASEDIR/reads.fastq.gz" \
     --labels "flye,hifi,lja" \
     --threads 16 \
     -o "$RESULTDIR/quast/refless" \
-    --eukaryote --large --pacbio \
+    --eukaryote --large \
     --est-ref-size 135000000 \
     --no-sv 
 
@@ -47,44 +49,57 @@ echo "Quast REFLESS DONE"
 
 mkdir -p "$RESULTDIR/busco"
 # flye assembly
-OD="$RESULTDIR/busco/flye"
-mkdir -p "$OD"
-apptainer exec \
-  --bind /data \
-  /containers/apptainer/busco-v5.6.1_cv1.sif \
-  busco -i "$RESULTDIR/flye/assembly.fasta" -c 16 -o "$OD" -m genome -l brassicales_odb10
 
-echo BUSCO - FLYE DONE
+#apptainer exec \
+#  --bind /data \
+#  /containers/apptainer/busco -f-v5.6.1_cv1.sif \
+
+module load BUSCO/5.4.2-foss-2021a
+
+busco -f -i "$RESULTDIR/flye/assembly.fasta" -c 16 --out_path "$RESULTDIR/busco" -o "flye"  -m genome -l brassicales_odb10
+
+echo busco - FLYE DONE
 
 OD="$RESULTDIR/busco/hifi"
 mkdir -p "$OD"
-apptainer exec \
-  --bind /data \
-  /containers/apptainer/busco-v5.6.1_cv1.sif \
-  busco -i "$RESULTDIR/hifiasm/assembly_primary_contig.fa" -c 16 -o "$OD" -m genome -l brassicales_odb10
+#apptainer exec \
+#  --bind /data \
+#  /containers/apptainer/busco -f-v5.6.1_cv1.sif \
+busco -f -i "$RESULTDIR/hifiasm/assembly_primary_contig.fa" -c 16 --out_path "$RESULTDIR/busco" -o "hifi" -m genome -l brassicales_odb10
 
-echo BUSCO - HIFI DONE
+echo busco - HIFI DONE
 
 OD="$RESULTDIR/busco/lja"
 mkdir -p "$OD"
-apptainer exec \
-  --bind /data \
-  /containers/apptainer/busco-v5.6.1_cv1.sif \
-  busco -i "$RESULTDIR/LJA/k501/disjointings.fasta" -c 16 -o "$OD" -m genome -l brassicales_odb10
+#apptainer exec \
+#  --bind /data \
+#  /containers/apptainer/busco -f-v5.6.1_cv1.sif \
+busco -f -i "$RESULTDIR/LJA/k501/disjointigs.fasta" -c 16 --out_path "$RESULTDIR/busco" -o "lja" -m genome -l brassicales_odb10
 
-echo BUSCO - LJA DONE
+echo busco - LJA DONE
 
 OD="$RESULTDIR/busco/trinity"
 mkdir -p "$OD"
+#apptainer exec \
+#  --bind /data \
+#  /containers/apptainer/busco -f-v5.6.1_cv1.sif \
+busco -f -i "$RESULTDIR/Trinity.Trinity.fasta" -c 16 --out_path "$RESULTDIR/busco" -o "trinity" -m transcriptome -l brassicales_odb10
+
+echo busco - TRINITY DONE
+
+export MERQURY="/usr/local/share/merqury"
+
+# HIFI
+
+OD="$RESULTDIR/mercury/hifi"
+mkdir -p "$OD"
 apptainer exec \
   --bind /data \
-  /containers/apptainer/busco-v5.6.1_cv1.sif \
-  busco -i "$RESULTDIR/Trinity/*.fasta" -c 16 -o "$OD" -m transcriptome -l brassicales_odb10
-
-echo BUSCO - TRINITY DONE
+  /containers/apptainer/meryl_1.4.1.sif \
+  meryl k=23.3272 count "$RESULTDIR/hifiasm/assembly_primary_contig.fa" output "$OD/hifi.meryl"
 
 
-OD="$RESULTDIR/mercury"
-mkdir -p "$OD"
-
-# NO MERCURY AT CURRENT POINT
+apptainer exec \
+  --bind /data \
+  /containers/apptainer/merqury_1.3.sif  \
+  $MERCURY/mercury.sh hifi.meryl output_hifi.meryl outfile
