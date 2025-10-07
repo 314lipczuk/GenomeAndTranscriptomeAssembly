@@ -1,13 +1,12 @@
 #!/bin/bash
 #SBATCH --time=15:00:00
-#SBATCH --mem-per-cpu=4g
+#SBATCH --mem-per-cpu=32g
 #SBATCH --cpus-per-task=16
-#SBATCH --job-name=Assemble_%a
+#SBATCH --job-name=Assemble
 #SBATCH --partition=pibu_el8
 #SBATCH --mail-user=przemyslaw.pilipczuk@students.unibe.ch
 #SBATCH --mail-type=end,fail
-#SBATCH --array=3
-
+#SBATCH --array=0-3
 
 SATI="$SLURM_ARRAY_TASK_ID"
 
