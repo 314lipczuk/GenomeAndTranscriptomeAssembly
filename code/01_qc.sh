@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #SBATCH --time=15:00:00
 #SBATCH --mem=64g
 #SBATCH --cpus-per-task=4
@@ -7,6 +6,22 @@
 #SBATCH --partition=pibu_el8
 #SBATCH --mail-user=przemyslaw.pilipczuk@students.unibe.ch
 #SBATCH --mail-type=end,fail
+
+# Quality control for DNA and RNA reads using FastQC, MultiQC, and fastp.
+# - Runs FastQC on input DNA and RNA FASTQ files
+# - Aggregates reports with MultiQC
+# - Trims/filters reads with fastp (DNA single-end; RNA paired-end)
+# - Uses background jobs (&) and wait to parallelize independent steps
+#
+# Inputs:
+# - $BASEDIR/reads.fastq.gz (HiFi DNA reads)
+# - $BASEDIR/RNA_data/ERR754081_1.fastq.gz and ERR754081_2.fastq.gz (RNA reads)
+# Outputs:
+# - $RESULTDIR/qc_original: FastQC reports
+# - $RESULTDIR/fastp: fastp reports and filtered FASTQs (dna, rna1, rna2)
+# Notes:
+# - Log paths are configured by run.sh and 00_setup.sh
+# - Requires Apptainer containers for tools on the cluster
 
 # The log paths are handled in the run.sh and 00_setup.sh, and set automatically
 
@@ -36,15 +51,14 @@ mkdir "$fp/dna"
 mkdir "$fp/rna1"
 mkdir "$fp/rna2"
 
-# These run independently - therefore we can paralellize them 
-#  using bash jobs: '&' at the end of a command to make it into a job, 
-# and 'wait' command to wait for them to finish before starting next step.
+# These run independently — we parallelize them with background jobs (&)
+# and synchronize with 'wait' before starting the next stage.
 wait
 # Sequential version of this script ran for: 16m
 # Paralell: 11m
 # So I'm leaving the paralell in.
 
-# multiqc so that i don't have to look at separate 2 reports.
+# MultiQC aggregates all FastQC results into one report
 apptainer exec \
   --bind /data \
   /containers/apptainer/multiqc-1.19.sif \
