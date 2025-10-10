@@ -8,8 +8,16 @@
 #SBATCH --mail-user=przemyslaw.pilipczuk@students.unibe.ch
 #SBATCH --mail-type=end,fail
 
-RESULTDIR=/data/users/ppilipczuk/GenomeAndTransAss/results
-BASEDIR=/data/users/ppilipczuk/GenomeAndTransAss
+# Assembly evaluation with QUAST, with and without a reference.
+# - SLURM array index selects mode:
+#   0: with reference (TAIR10), 1: reference-free
+# - Compares multiple assemblies (Flye, hifiasm, LJA)
+#
+# Inputs:
+# - Assemblies under $RESULTDIR/{flye,hifiasm,LJA}
+# - Reference FASTA and GFF (for index 0)
+# Outputs:
+# - $RESULTDIR/quast/{ref,refless}/
 
 # Assemblies
 FLYE="$RESULTDIR/flye/assembly.fasta"
@@ -20,6 +28,7 @@ if [ $SLURM_ARRAY_TASK_ID -eq 0 ]; then
     echo "Running QUAST WITH reference"
     OUTDIR="$RESULTDIR/quast/ref"
     mkdir -p "$OUTDIR"
+    # QUAST with reference: enables gene feature evaluation and read mapping stats
     apptainer exec --bind /data /containers/apptainer/quast_5.2.0.sif quast.py \
       "$FLYE" "$HIFI" "$LJA" \
       --labels "flye,hifi,lja" \
@@ -36,6 +45,7 @@ else
     echo "Running QUAST WITHOUT reference"
     OUTDIR="$RESULTDIR/quast/refless"
     mkdir -p "$OUTDIR"
+    # QUAST without reference: uses intrinsic metrics only
     apptainer exec --bind /data /containers/apptainer/quast_5.2.0.sif quast.py \
       "$FLYE" "$HIFI" "$LJA" \
       --labels "flye,hifi,lja" \

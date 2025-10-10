@@ -8,6 +8,15 @@
 #SBATCH --mail-user=przemyslaw.pilipczuk@students.unibe.ch
 #SBATCH --mail-type=end,fail
 
+# Assembly completeness assessment with BUSCO.
+# - Runs BUSCO on multiple assemblies using SLURM array indices
+# - Uses appropriate mode per assembly (genome vs transcriptome)
+#
+# Inputs:
+# - $RESULTDIR/{flye,hifiasm,LJA,Trinity}/...
+# Outputs:
+# - $RESULTDIR/busco/<name> with summary scores
+
 module load BUSCO/5.4.2-foss-2021a
 
 # Define assemblies
@@ -28,6 +37,8 @@ MODE=${MODES[$SLURM_ARRAY_TASK_ID]}
 OUTDIR="$RESULTDIR/busco"
 mkdir -p "$OUTDIR"
 
+# -l brassicales_odb10: lineage dataset for Arabidopsis
+# -m MODE: 'genome' or 'transcriptome' per assembly
 busco -f -i "$INPUT" -c 16 --out_path "$OUTDIR" -o "$NAME" -m "$MODE" -l brassicales_odb10
 
 echo "BUSCO done for $NAME"

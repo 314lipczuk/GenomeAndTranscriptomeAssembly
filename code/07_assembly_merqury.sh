@@ -8,6 +8,17 @@
 #SBATCH --mail-user=przemyslaw.pilipczuk@students.unibe.ch
 #SBATCH --mail-type=end,fail
 
+# Assembly quality evaluation using Merqury.
+# - Builds a k-mer database from reads (once) using meryl
+# - Runs Merqury to estimate QV, k-mer completeness, and spectra-cn plots
+# - SLURM array index selects assembly to evaluate
+#
+# Inputs:
+# - $BASEDIR/reads.fastq.gz (HiFi reads for k-mer DB)
+# - Assembly FASTA from $RESULTDIR/{flye,hifiasm,LJA}
+# Outputs:
+# - $RESULTDIR/merqury/<name>/ with reports and plots
+
 RESULTDIR=/data/users/ppilipczuk/GenomeAndTransAss/results
 BASEDIR=/data/users/ppilipczuk/GenomeAndTransAss
 export MERQURY="/usr/local/share/merqury"
